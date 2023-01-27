@@ -1,0 +1,73 @@
+import { Controller,UseGuards } from '@nestjs/common';
+import { {{titleCase name}}Service } from './{{name}}.service';
+import { Create{{titleCase-removePlural name}}Dto } from './dto/create-{{removePlural name}}.dto';
+import { Update{{titleCase-removePlural name}}Dto } from './dto/update-{{removePlural name}}.dto';
+import { CreateManyDto, Crud, CrudController, CrudRequest, Override, ParsedBody, ParsedRequest } from '@nestjsx/crud';
+import { {{titleCase-removePlural name}} } from './entities/{{removePlural name}}.entity';
+import { JwtAuthGuard } from 'src/auth/guard-strategy/jwt-auth.guard';
+import { RolesGuard } from 'src/auth/guard-strategy/roles.guard';
+import { Roles } from 'src/decorators/roles.decorator';
+import { ThrottlerGuard } from '@nestjs/throttler';
+// import { Cache } from 'cache-manager';
+
+
+//https://github.com/nestjsx/crud/wiki/Requests#search
+@Crud({
+  model: {
+    type: {{titleCase-removePlural name}},
+  },
+})
+@UseGuards(JwtAuthGuard,RolesGuard,ThrottlerGuard)
+@Controller('{{name}}')
+export class {{titleCase name}}Controller implements CrudController<{{titleCase-removePlural name}}> {
+  constructor(
+    public service: {{titleCase name}}Service,
+    // @Inject(CACHE_MANAGER) private cacheManager: Cache
+
+    ) {
+
+  }
+  get base(): CrudController<{{titleCase-removePlural name}}> {
+    return this;
+  }
+  
+  @Override() 
+  @Roles("admin")
+  @CacheTTL(60 * 3)
+  getMany(
+    @ParsedRequest() req: CrudRequest,
+  ) {
+    return this.base.getManyBase(req);
+  }
+
+  @Override('getOneBase')
+  getOneAndDoStuff(
+    @ParsedRequest() req: CrudRequest,
+  ) {
+    return this.base.getOneBase(req);
+  }
+
+  @Override()
+  createOne(
+    @ParsedRequest() req: CrudRequest,
+    @ParsedBody() dto: {{titleCase-removePlural name}},
+  ) {
+    return this.base.createOneBase(req, dto);
+  }
+
+  @Override()
+  createMany(
+    @ParsedRequest() req: CrudRequest,
+    @ParsedBody() dto: CreateManyDto<{{titleCase-removePlural name}}>
+  ) {
+    return this.base.createManyBase(req, dto);
+  }
+
+  @Override()
+  async deleteOne(
+    @ParsedRequest() req: CrudRequest,
+  ) {
+    return
+    //return this.base.deleteOneBase(req);
+  }
+}

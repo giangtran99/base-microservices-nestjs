@@ -1,0 +1,14 @@
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Create{{ titleCase-removePlural name }}Dto } from './dto/create-{{removePlural name}}.dto';
+import { Update{{ titleCase-removePlural name }}Dto } from './dto/update-{{removePlural name}}.dto';
+import { TypeOrmCrudService } from '@nestjsx/crud-typeorm';
+
+import { {{titleCase-removePlural name}} } from './entities/{{removePlural name}}.entity';
+
+@Injectable()
+export class {{titleCase name}}Service extends TypeOrmCrudService<{{titleCase-removePlural name}}> {
+  constructor(@InjectRepository({{titleCase-removePlural name}}) repo) {
+    super(repo);
+  }
+}
