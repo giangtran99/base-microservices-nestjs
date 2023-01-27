@@ -1,4 +1,4 @@
-import { CacheInterceptor, CacheKey, CacheTTL, CACHE_MANAGER, Controller, HttpCode, Inject, OnModuleDestroy, OnModuleInit, Post, Req, UseGuards, UseInterceptors } from '@nestjs/common';
+import { CacheInterceptor, CacheKey, CacheTTL, CACHE_MANAGER, Controller, Get, HttpCode, Inject, OnModuleDestroy, OnModuleInit, Post, Req, UseGuards, UseInterceptors } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -50,6 +50,7 @@ export class UsersController implements CrudController<User>, OnModuleInit, OnMo
     await this.client.close();
   }
 
+
   @Override()
   // @HttpCode(200)
   // @Roles("admin")
@@ -58,18 +59,15 @@ export class UsersController implements CrudController<User>, OnModuleInit, OnMo
   // @MessagePattern("user.list")
   async getMany(
     // @Req() expressReq: Request,
-    @ParsedRequest() req: CrudRequest,
-  ) : Promise<Observable<any>>{
+    // @ParsedRequest() req: CrudRequest,
+  ) :Promise<Observable<any>>{
     // const users = await this.base.getManyBase(req)
-    const result = await lastValueFrom(this.client.send('user.list', {
-      headers: {
-        toPartition: 1,
-      },
+    const result = await this.client.send('user.list', {
       key: '1',
       value: {
         users: "alo alo",
       },
-    }))
+    })
     return result
     // return this.base.getManyBase(req);
   }

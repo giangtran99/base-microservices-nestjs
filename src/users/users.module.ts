@@ -27,12 +27,13 @@ const explicitPartitioner = () => {
             clientId: 'user-service-1',
             brokers: ['192.168.1.6:9092'],
           },
-          run: {
-            partitionsConsumedConcurrently: 3,
-          },
-          producer: {
-            createPartitioner: explicitPartitioner,
-          },
+          // run: {
+          //   partitionsConsumedConcurrently: 3,
+          // },
+          // producerOnlyMode:true,
+          // producer: {
+          //   createPartitioner: explicitPartitioner,
+          // },
         }
       },
     ]),
