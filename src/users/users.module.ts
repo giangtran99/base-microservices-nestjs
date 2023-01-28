@@ -25,8 +25,13 @@ const explicitPartitioner = () => {
         options: {
           client: {
             clientId: 'user-service-1',
-            brokers: ['192.168.1.6:9092'],
+            brokers: ['192.168.1.18:9092'],
+
           },
+          consumer: {
+            sessionTimeout: 10000,
+            groupId: 'user-consumer' // hero-consumer-client
+          }
           // run: {
           //   partitionsConsumedConcurrently: 3,
           // },

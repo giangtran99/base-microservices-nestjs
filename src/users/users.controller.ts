@@ -29,7 +29,7 @@ import { lastValueFrom, Observable } from 'rxjs';
 // @UseGuards(RolesGuard)
 export class UsersController implements CrudController<User>, OnModuleInit, OnModuleDestroy {
   constructor(
-    @Inject('USER_SERVICE') private readonly client: ClientKafka,
+    @Inject('USER_SERVICE') private readonly client: any,
     public service: UsersService,
     // @Inject(CACHE_MANAGER) private cacheManager: Cache
   ) { }
@@ -37,12 +37,14 @@ export class UsersController implements CrudController<User>, OnModuleInit, OnMo
     return this;
   }
 
+
+
   async onModuleInit() {
     const requestPatterns = ['user.list'];
     requestPatterns.forEach(pattern => {
       this.client.subscribeToResponseOf(pattern);
     });
-
+    console.log("BEFORE CONNECT",this.client)
     await this.client.connect();
   }
 
@@ -51,25 +53,34 @@ export class UsersController implements CrudController<User>, OnModuleInit, OnMo
   }
 
 
-  @Override()
+  // @Override()
   // @HttpCode(200)
   // @Roles("admin")
   // @CacheTTL(60 * 5)
   // @UseInterceptors(CacheInterceptor)
   // @MessagePattern("user.list")
-  async getMany(
-    // @Req() expressReq: Request,
-    // @ParsedRequest() req: CrudRequest,
-  ) :Promise<Observable<any>>{
-    // const users = await this.base.getManyBase(req)
-    const result = await this.client.send('user.list', {
-      key: '1',
-      value: {
-        users: "alo alo",
-      },
-    })
-    return result
-    // return this.base.getManyBase(req);
+  @Get('test')
+  @HttpCode(200)
+  async mathSumSyncKafkaMessage(
+    // @Body() data: number[],
+  ) {
+    try {
+      console.log({client:this.client as any})
+      const result = await lastValueFrom(
+        this.client.send('user.list', {
+        
+        })
+      );
+      return {
+        message: result
+      };
+    }
+    catch (error) {
+      return {
+        message: error
+      }
+    }
+
   }
 
   @Override('getOneBase')
