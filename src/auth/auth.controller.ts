@@ -59,7 +59,6 @@ export class AuthController implements CrudController<User>{
       username: createAuthDto.username,
       password: createAuthDto.password
     }
-    
     const { refresh_token, access_token } = await this.authService.login(payload);
     res.cookie('refresh_token', refresh_token, { httpOnly: true });
     

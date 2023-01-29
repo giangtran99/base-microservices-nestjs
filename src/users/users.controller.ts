@@ -1,4 +1,4 @@
-import { CacheInterceptor, CacheKey, CacheTTL, CACHE_MANAGER, Controller, Get, HttpCode, Inject, OnModuleDestroy, OnModuleInit, Post, Req, UseGuards, UseInterceptors } from '@nestjs/common';
+import { CacheInterceptor, CacheKey, CacheTTL, CACHE_MANAGER, Controller, Get, HttpCode, Inject, Logger, OnModuleDestroy, OnModuleInit, Post, Req, UseGuards, UseInterceptors } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -10,9 +10,11 @@ import { RolesGuard } from 'src/auth/guard-strategy/roles.guard';
 import { Roles } from 'decorators/roles.decorator';
 import { Request } from 'express';
 import { ThrottlerGuard } from '@nestjs/throttler';
-import { Client, ClientKafka, MessagePattern, Transport } from '@nestjs/microservices';
+import { Client, ClientKafka, EventPattern, MessagePattern, Payload, Transport } from '@nestjs/microservices';
 import { PartitionerArgs } from 'kafkajs';
-import { lastValueFrom, Observable } from 'rxjs';
+import { firstValueFrom, lastValueFrom, Observable } from 'rxjs';
+import { SubcribeTopic } from 'cores/microservices/kafka/decorator/SubcribeTopic';
+// import MyClientKafka from 'cores/microservices/client/client-kafka';
 // import { Cache } from 'cache-manager';
 
 
@@ -29,58 +31,46 @@ import { lastValueFrom, Observable } from 'rxjs';
 // @UseGuards(RolesGuard)
 export class UsersController implements CrudController<User>, OnModuleInit, OnModuleDestroy {
   constructor(
-    @Inject('USER_SERVICE') private readonly client: any,
+    @Inject('KAFKA_CLIENT') private readonly broker: any ,
     public service: UsersService,
     // @Inject(CACHE_MANAGER) private cacheManager: Cache
   ) { }
+  protected readonly logger = new Logger(UsersController.name);
   get base(): CrudController<User> {
     return this;
   }
 
-
-
   async onModuleInit() {
-    const requestPatterns = ['user.list'];
-    requestPatterns.forEach(pattern => {
-      this.client.subscribeToResponseOf(pattern);
-    });
-    console.log("BEFORE CONNECT",this.client)
-    await this.client.connect();
+      console.log("chien de",this.broker)
   }
 
   async onModuleDestroy() {
-    await this.client.close();
   }
 
 
-  // @Override()
+  @Override()
   // @HttpCode(200)
   // @Roles("admin")
   // @CacheTTL(60 * 5)
   // @UseInterceptors(CacheInterceptor)
   // @MessagePattern("user.list")
-  @Get('test')
-  @HttpCode(200)
-  async mathSumSyncKafkaMessage(
-    // @Body() data: number[],
+  // @EventPattern("user.handler")
+  async getMany(
+    payload: any,
+    @Req() expressReq: Request,
+    @ParsedRequest() req: CrudRequest,
   ) {
+    const users = await this.base.getManyBase(req)
     try {
-      console.log({client:this.client as any})
-      const result = await lastValueFrom(
-        this.client.send('user.list', {
-        
-        })
-      );
-      return {
-        message: result
-      };
+
     }
     catch (error) {
+      console.log({ error })
       return {
         message: error
       }
     }
-
+    // return this.base.getManyBase(req);
   }
 
   @Override('getOneBase')
@@ -128,5 +118,17 @@ export class UsersController implements CrudController<User>, OnModuleInit, OnMo
   ) {
     return this.base.deleteOneBase(req);
   }
+
+  @SubcribeTopic({
+    topic:"user.create",
+  })
+  @Get("/kafka/test")
+  handleUsers(
+    payload: any,
+  ) {
+      console.log("payload",payload)
+  }
+
+
 
 }
