@@ -5,8 +5,6 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 
 import { join } from 'path';
 
-import Config from 'nest.config';
-import helmet from 'helmet';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 declare const module: any;
 
@@ -18,7 +16,7 @@ async function bootstrap() {
       options: {
         client: {
           // clientId: 'user-service',
-          brokers: ['192.168.1.12:9092'],
+          brokers: ['192.168.1.9:9092'],
         },
         // run: {
         //   partitionsConsumedConcurrently: numbersOfServers,

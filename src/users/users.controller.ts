@@ -13,7 +13,7 @@ import { ThrottlerGuard } from '@nestjs/throttler';
 import { Client, ClientKafka, EventPattern, MessagePattern, Payload, Transport } from '@nestjs/microservices';
 import { PartitionerArgs } from 'kafkajs';
 import { firstValueFrom, lastValueFrom, Observable } from 'rxjs';
-import { SubcribeTopic } from 'cores/microservices/kafka/decorator/SubcribeTopic';
+
 // import MyClientKafka from 'cores/microservices/client/client-kafka';
 // import { Cache } from 'cache-manager';
 
@@ -31,7 +31,7 @@ import { SubcribeTopic } from 'cores/microservices/kafka/decorator/SubcribeTopic
 // @UseGuards(RolesGuard)
 export class UsersController implements CrudController<User>, OnModuleInit, OnModuleDestroy {
   constructor(
-    @Inject('KAFKA_CLIENT') private readonly broker: any ,
+    @Inject('USER_SERVICE') private readonly broker: any,
     public service: UsersService,
     // @Inject(CACHE_MANAGER) private cacheManager: Cache
   ) { }
@@ -41,10 +41,16 @@ export class UsersController implements CrudController<User>, OnModuleInit, OnMo
   }
 
   async onModuleInit() {
-      console.log("chien de",this.broker)
+    const requestPatterns = ['user.list'];
+    requestPatterns.forEach(pattern => {
+      this.broker.subscribeToResponseOf(pattern);
+    });
+    console.log("BEFORE CONNECT", this.broker)
+    await this.broker.connect();
   }
 
   async onModuleDestroy() {
+    await this.broker.close();
   }
 
 
@@ -57,17 +63,24 @@ export class UsersController implements CrudController<User>, OnModuleInit, OnMo
   // @EventPattern("user.handler")
   async getMany(
     payload: any,
-    @Req() expressReq: Request,
     @ParsedRequest() req: CrudRequest,
   ) {
     const users = await this.base.getManyBase(req)
     try {
-
+      const result = await lastValueFrom(
+        this.broker.send('user.list', {
+          value: users,
+          key: "1",
+        })
+      );
+      return {
+        items: result,
+      };
     }
     catch (error) {
       console.log({ error })
       return {
-        message: error
+        error: error
       }
     }
     // return this.base.getManyBase(req);
@@ -119,15 +132,20 @@ export class UsersController implements CrudController<User>, OnModuleInit, OnMo
     return this.base.deleteOneBase(req);
   }
 
-  @SubcribeTopic({
-    topic:"user.create",
-  })
-  @Get("/kafka/test")
-  handleUsers(
-    payload: any,
-  ) {
-      console.log("payload",payload)
-  }
+
+  // @MessagePattern("user.list")
+  // handleUsers(
+  //   @Payload() message: any,
+  // ) {
+  //   const realm = 'Nest';
+  //   console.log("message: ", message)
+  //   return {
+  //     headers: {
+  //       realm
+  //     },
+  //     value: message.map((user:User)=>({...user,["username"]:user.username.toUpperCase()}))
+  //   }
+  // }
 
 
 

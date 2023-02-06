@@ -10,6 +10,9 @@ dotenv.config()
 // console.log({on:redisStore.})
 
 const Config = {
+    namespace:"nestjs",
+    serviceName:"base",
+    nodeId:"1",
     cache: {
         currentStore: CACHE_STORE.REDIS,
         store: {
